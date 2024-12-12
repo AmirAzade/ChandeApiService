@@ -98,6 +98,7 @@ def graph(currency, start_date, end_date):
         raise click.BadOptionUsage('', 'End date can\'t be the same or before the start date.')
 
     result = get_graph_data(currency.lower(), start_date, end_date)
+
     for date, rate in result.items():
         click.echo(f'{date.date()}: {rate}')
     pass
