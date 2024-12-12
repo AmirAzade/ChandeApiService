@@ -23,6 +23,7 @@ def dist_calculate(json1, json2):
         elif currency2_key in json1 and "sell" in values:
             json1[f"{currency_code}3"] = str(int(json1[currency2_key]) - values["sell"])
 
+    # Return json1 as a dictionary, not as a JSON string
     return json1
 
 
