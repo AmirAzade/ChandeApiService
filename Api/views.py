@@ -49,7 +49,7 @@ def convert_currency_data(input_data):
             output["data"].append(currency_entry)
         if key.endswith("1"):
             currency_code = key[:-1]
-            print('*', currency_code)
+            # print('*', currency_code)
             buy_price_key = f"{currency_code}1"
             sell_price_key = f"{currency_code}2"
             change_price_key = f"{currency_code}3"
@@ -91,6 +91,7 @@ def get_history_price(currency_symbol, date_string):
     return values_list
 
 def currency_price(request):
+
     cache_timeout = 10
     shirini_status = False
 
