@@ -130,7 +130,7 @@ def convert_currency_json(data):
             "buy": float(buy_price),
             "sell": float(buy_price),
             "change": 0,
-            "history": [0, 0, 0, 0, 0, 0, float(buy_price)]  # Example history
+            "history": [0, 0, 0, 0, 0, 0]  # Example history
         })
     
     return response
