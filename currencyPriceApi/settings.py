@@ -54,8 +54,8 @@ ROOT_URLCONF = 'currencyPriceApi.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
+        'DIRS': [],  # Can be empty unless you have custom template directories
+        'APP_DIRS': True,  # Must be True to enable searching in app directories
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',

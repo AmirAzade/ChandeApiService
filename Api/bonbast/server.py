@@ -10,7 +10,7 @@ try:
 except ImportError:
     from models import *
 
-BASE_URL = 'https://bonbast.com'
+BASE_URL = 'https://'
 USER_AGENT = ('Mozilla/5.0 (Linux; Android 13; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) '
               'Chrome/120.0.0.0 Mobile Safari/537.36')
 SELL = '1'
@@ -33,7 +33,7 @@ def int_try_parse(value) -> Optional[int]:
 
 def get_token_from_main_page():
     """
-    Retrieves a token from the main page of bonbast.com.
+    Retrieves a token from the main page of bon-bast.com.
     
     :return: The retrieved token.
     :raises SystemExit: If an HTTP error occurs or the token is not found.
@@ -43,12 +43,12 @@ def get_token_from_main_page():
         'st_bb': '0',
     }
     headers = {
-        'authority': 'bonbast.com',
+        'authority': 'bon-bast.com',
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'accept-language': 'en-US,en-GB;q=0.9,en;q=0.8',
         'cache-control': 'no-cache',
         'pragma': 'no-cache',
-        'referer': 'https://bonbast.com/',
+        'referer': 'https://bon-bast.com/',
         'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
         'sec-ch-ua-mobile': '?1',
         'sec-ch-ua-platform': '"Android"',
@@ -88,12 +88,12 @@ def get_prices_from_api(token: str) -> Tuple[List[Currency], List[Coin], List[Go
         'st_bb': '0',
     }
     headers = {
-        'authority': 'bonbast.com',
+        'authority': 'bon-bast.com',
         'accept': 'application/json, text/javascript, */*; q=0.01',
         'accept-language': 'en-US,en-GB;q=0.9,en;q=0.8',
         'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'origin': 'https://bonbast.com',
-        'referer': 'https://bonbast.com/',
+        'origin': 'https://bon-bast.com',
+        'referer': 'https://bon-bast.com/',
         'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
         'sec-ch-ua-mobile': '?1',
         'sec-ch-ua-platform': '"Android"',
@@ -156,7 +156,7 @@ def get_graph_data(
         end_date: datetime = datetime.today(),
 ) -> Dict[datetime, int]:
     """
-    Retrieves historical price data from bonbast.com/graph for a specified currency within a date range.
+    Retrieves historical price data from bon-bast.com/graph for a specified currency within a date range.
     
     :param currency: The currency code.
     :param start_date: The start date of the range.
@@ -165,7 +165,7 @@ def get_graph_data(
     :raises SystemExit: If an HTTP error occurs.
     """
     headers = {
-        'authority': 'bonbast.com',
+        'authority': 'bon-bast.com',
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'accept-language': 'en-US,en;q=0.9,fa;q=0.8',
         'cache-control': 'max-age=0',
@@ -226,7 +226,7 @@ def get_history(date: datetime = datetime.today() - timedelta(days=1)) -> Tuple[
         raise SystemExit(f'Error: date must be less than today({date.today().date()}).')
 
     headers = {
-        'authority': 'bonbast.com',
+        'authority': '',
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
         'accept-language': 'en-US,en;q=0.9,fa;q=0.8',
         'cache-control': 'max-age=0',

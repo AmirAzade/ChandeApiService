@@ -1,6 +1,6 @@
 import requests
 
-BASE_URL = 'https://bonbast.com'
+BASE_URL = 'https://bon-bast.com'
 USER_AGENT = ('Mozilla/5.0 (Linux; Android 13; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) '
               'Chrome/120.0.0.0 Mobile Safari/537.36')
 
@@ -17,12 +17,12 @@ def get_prices_from_api(token: str):
         'st_bb': '0',
     }
     headers = {
-        'authority': 'bonbast.com',
+        'authority': 'bon-bast.com',
         'accept': 'application/json, text/javascript, */*; q=0.01',
         'accept-language': 'en-US,en-GB;q=0.9,en;q=0.8',
         'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'origin': 'https://bonbast.com',
-        'referer': 'https://bonbast.com/',
+        'origin': 'https://bon-bast.com',
+        'referer': 'https://bon-bast.com/',
         'sec-ch-ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
         'sec-ch-ua-mobile': '?1',
         'sec-ch-ua-platform': '"Android"',

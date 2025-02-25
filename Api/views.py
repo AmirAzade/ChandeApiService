@@ -9,6 +9,13 @@ import json
 from collections import OrderedDict
 import calendar
 
+from telethon.sync import TelegramClient
+from telethon.tl.types import InputMessagesFilterDocument
+from django.http import HttpResponse
+from django.conf import settings
+import requests
+import re
+
 def convert_to_date_yesterday(date_str):
     dt = datetime.strptime(date_str, "%B %d, %Y %H:%M")
     yesterday = dt - timedelta(days=1)
@@ -90,6 +97,75 @@ def get_history_price(currency_symbol, date_string):
 
     return values_list
 
+
+# new function for bon-bast.com
+def convert_currency_json(data):
+    response = {"data": []}
+    
+    for symbol, buy_price in data.items():
+        show_symbol = symbol
+        if symbol.upper() == "SEKKEH":
+            show_symbol = "emami1"
+        elif symbol.upper() == "BAHAR":
+            show_symbol = "azadi1"
+        elif symbol.upper() == "NIM":
+            show_symbol = "azadi1_2"
+        elif symbol.upper() == "ROB":
+            show_symbol = "azadi1_4"
+        elif symbol.upper() == "GERAMI":
+            show_symbol = "azadi1g"
+        elif symbol.upper() == "USD_XAU":
+            show_symbol = "ounce"
+        elif symbol.upper() == "XAU":
+            continue
+        elif symbol.upper() == "ABSHODEH":
+            show_symbol = "mithqal"
+        elif symbol.upper() == "18AYAR":
+            show_symbol = "gol18"
+        elif symbol.upper() == "BTC_USDT":
+            continue
+
+        response["data"].append({
+            "symbol": show_symbol.upper(),
+            "buy": float(buy_price),
+            "sell": float(buy_price),
+            "change": 0,
+            "history": [0, 0, 0, 0, 0, 0, float(buy_price)]  # Example history
+        })
+    
+    return response
+
+def extract_symbols_data(html_content):
+    match = re.search(r'var symbolsData=(\{.*?\});', html_content, re.DOTALL)
+    if match:
+        json_data = match.group(1)
+        try:
+            symbols_data = json.loads(json_data)
+            return symbols_data
+        except json.JSONDecodeError:
+            return None
+    else:
+        return None
+
+def get_new_prices():
+    try:
+        url = "https://www.bon-bast.com"
+        response = requests.get(url)
+        
+        response.raise_for_status()
+        
+        symbols_data = extract_symbols_data(response.text)
+        if symbols_data:
+            validFormat = convert_currency_json(symbols_data)
+            # print(json.dumps(symbols_data, indent=2))
+            return json.dumps(validFormat, indent=2)
+            # file.write(json.dumps(validFormat, indent=2))
+
+    except requests.exceptions.RequestException as e:
+        return None
+
+# end of new function for bon-bast.com
+
 def currency_price(request):
 
     cache_timeout = 10
@@ -98,34 +174,36 @@ def currency_price(request):
     currency_price_cache = cache.get('currency_price')
 
     if currency_price_cache is None:
-        token_manager = TokenManager()
-        token = token_manager.generate()
-        current_prices = get_prices_from_api(token.value) #important
+        # token_manager = TokenManager()
+        # token = token_manager.generate()
+        # current_prices = get_prices_from_api(token.value) #important
 
-        current_prices = {k if k != 'azadi1' else 'azadi11': v for k, v in current_prices.items()}
-        current_prices = {k if k != 'azadi1_2' else 'azadi1_21': v for k, v in current_prices.items()}
-        current_prices = {k if k != 'azadi1_4' else 'azadi1_41': v for k, v in current_prices.items()}
-        current_prices = {k if k != 'azadi1g' else 'azadi1g1': v for k, v in current_prices.items()}
-        current_prices = {k if k != 'emami1' else 'emami11': v for k, v in current_prices.items()}
+        # current_prices = {k if k != 'azadi1' else 'azadi11': v for k, v in current_prices.items()}
+        # current_prices = {k if k != 'azadi1_2' else 'azadi1_21': v for k, v in current_prices.items()}
+        # current_prices = {k if k != 'azadi1_4' else 'azadi1_41': v for k, v in current_prices.items()}
+        # current_prices = {k if k != 'azadi1g' else 'azadi1g1': v for k, v in current_prices.items()}
+        # current_prices = {k if k != 'emami1' else 'emami11': v for k, v in current_prices.items()}
 
-        specific_date = convert_to_date_yesterday(current_prices['last_modified'])
+        # specific_date = convert_to_date_yesterday(current_prices['last_modified'])
 
-        yesterday_price_cache = cache.get(str(specific_date))
+        # yesterday_price_cache = cache.get(str(specific_date))
 
-        if yesterday_price_cache is None:
-            currencies_list, coins_list = get_history(specific_date)
-            currencies_list, coins_list = filter_valids(currencies_list, coins_list)
+        # if yesterday_price_cache is None:
+        #     currencies_list, coins_list = get_history(specific_date)
+        #     currencies_list, coins_list = filter_valids(currencies_list, coins_list)
 
-            yesterday_prices = convert_json(currencies_list, coins_list)
-            cache.set(str(specific_date), yesterday_prices, 24*60*60)
-        else:
-            yesterday_prices = yesterday_price_cache
+        #     yesterday_prices = convert_json(currencies_list, coins_list)
+        #     cache.set(str(specific_date), yesterday_prices, 24*60*60)
+        # else:
+        #     yesterday_prices = yesterday_price_cache
 
-        final_json = dist_calculate(current_prices, yesterday_prices)
-        sorted_final_json = OrderedDict(sorted(final_json.items()))
+        # final_json = dist_calculate(current_prices, yesterday_prices)
+
+        sorted_final_json = json.loads(get_new_prices())
+        sorted_final_json = OrderedDict(sorted(sorted_final_json.items()))
         sorted_final_json["shirini"] = shirini_status
 
-        sorted_final_json = convert_currency_data(sorted_final_json)
+        # sorted_final_json = convert_currency_data(sorted_final_json)
         cache.set('currency_price', sorted_final_json, cache_timeout)
 
         return JsonResponse(sorted_final_json, status=200)
@@ -184,3 +262,58 @@ def history_price(request):
     res = convert_json(currencies_list, coins_list)
     return JsonResponse(res, status=200)
 
+# api_id = '29521119'
+# api_hash = '885aa49d84d2e1d5e95095377e0afb29'
+
+# def telegramdl(request, target_file_name):
+#     # Define the chat name (you can change this to any chat or Saved Messages)
+#     chat_name = "AmirrAzade"  # Specify the chat/channel name where the file is uploaded
+    
+#     # Initialize the Telegram client
+#     with TelegramClient('session_name', api_id, api_hash) as client:
+#         # Get the messages from the specified chat/channel (limit to 100 messages)
+#         messages = client.get_messages(chat_name, limit=100)
+#         print("**************************************************")
+#         print("**************************************************")
+#         print(messages)
+#         print("**************************************************")
+#         print("**************************************************")
+#         print("**************************************************")
+
+#         for message in messages:
+#             # Check if the message contains a file (document or media)
+#             if message.file:
+#                 # Check if it's a document and matches the file name
+#                 if isinstance(message.media, InputMessagesFilterDocument) and target_file_name.lower() in message.file.name.lower():
+#                     # Download the file to a temporary location
+#                     file_path = message.download_media(file=target_file_name)
+#                     print(f"Downloaded file: {file_path}")
+                    
+#                     # Open the downloaded file and send it as an HTTP response
+#                     with open(file_path, 'rb') as f:
+#                         response = HttpResponse(f.read(), content_type="application/octet-stream")
+#                         response['Content-Disposition'] = f'attachment; filename={target_file_name}'
+#                         return response
+        
+#         # If the file is not found
+#         return HttpResponse(f"File '{target_file_name}' not found.", status=404)
+    
+import os
+import tempfile
+from django.shortcuts import render
+from django.http import HttpResponse
+from .forms import FileUploadForm
+# from telegram_upload.client import TelegramClient
+
+from django.conf import settings
+
+def upload_to_telegram(request):
+    print(settings.TEMPLATES)
+    if request.method == 'POST':
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            return HttpResponse("File uploaded successfully!")
+    else:
+        form = FileUploadForm()
+
+    return render(request, 'upload.html', {'form': form})
