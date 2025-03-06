@@ -202,14 +202,14 @@ valid_symbols = [
 ]
 
 valid_golds = {
-    'ABSHODEH': 'MITHQAL',
-    '18AYAR': 'GOL18',
-    'USD_XAU': 'OUNCE',
-    'SEKKEH': 'EMAMI1',
-    'BHAHR': 'AZADI1',
-    'NIM': 'AZADI1_2',
-    'ROB': 'AZADI1_4',
-    'SEK': 'AZADI1G'
+    'ABSHODEH': 'mithqal',
+    '18AYAR': 'gol18',
+    'USD_XAU': 'ounce',
+    'SEKKEH': 'emami1',
+    'BHAHR': 'azadi1',
+    'NIM': 'azadi1_2',
+    'ROB': 'azadi1_4',
+    'SEK': 'azadi1g'
 }
 
 def transform_currency_data(input_json_currency, input_json_golds):
