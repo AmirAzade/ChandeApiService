@@ -16,6 +16,8 @@ from django.conf import settings
 import requests
 import re
 
+from requests.structures import CaseInsensitiveDict
+
 def convert_to_date_yesterday(date_str):
     dt = datetime.strptime(date_str, "%B %d, %Y %H:%M")
     yesterday = dt - timedelta(days=1)
@@ -166,9 +168,137 @@ def get_new_prices():
 
 # end of new function for bon-bast.com
 
+# new functions to use alanChand as source
+valid_symbols = [
+    'USD',
+    'EUR',
+    'GBP',
+    'CHF',
+    'CAD',
+    'AUD',
+    'SEK',
+    'NOK',
+    'RUB',
+    'THB',
+    'SGD',
+    'HKD',
+
+    'AZN',
+    'AMD',
+    'DKK',
+    'AED',
+    'JPY',
+    'TRY',
+    'CNY',
+    'SAR',
+    'INR',
+    'MYR',
+    'AFN',
+    'KWD',
+    'IQD',
+    'BHD',
+    'OMR',
+    'QAR',
+]
+
+valid_golds = {
+    'ABSHODEH': 'MITHQAL',
+    '18AYAR': 'GOL18',
+    'USD_XAU': 'OUNCE',
+    'SEKKEH': 'EMAMI1',
+    'BHAHR': 'AZADI1',
+    'NIM': 'AZADI1_2',
+    'ROB': 'AZADI1_4',
+    'SEK': 'AZADI1G'
+}
+
+def transform_currency_data(input_json_currency, input_json_golds):
+    output_data = {"data": []}
+    
+    for currency in input_json_currency["arz"]:
+        symbol = currency["slug"].upper()
+        
+        if not symbol in valid_symbols:
+            continue
+
+        # Extracting the latest price and history
+        price_entries = sorted(currency["price"], key=lambda x: x["created_at"], reverse=True)
+        
+        if price_entries:
+            latest_price = price_entries[0]
+            buy_price = latest_price["price"]  # Assuming buy price is slightly lower
+            sell_price = latest_price["price"]
+            change = price_entries[0]["price"] - price_entries[1]["price"] if len(price_entries) > 1 else 0
+
+            price_entries.reverse()
+
+            history = [entry["price"] for entry in price_entries[:2]]
+            while len(history) < 7:
+                history.insert(0, 0)
+
+            
+            output_data["data"].append({
+                "symbol": symbol,
+                "buy": buy_price,
+                "sell": sell_price,
+                "change": round(change, 1),
+                "history": history
+            })
+
+
+    for currency in input_json_golds["gold"]:
+        symbol = currency["slug"].upper()
+        
+        if not symbol in valid_golds:
+            continue
+
+        # Extracting the latest price and history
+        price_entries = sorted(currency["price"], key=lambda x: x["created_at"], reverse=True)
+        
+        if price_entries:
+            latest_price = price_entries[0]
+            buy_price = latest_price["price"]  # Assuming buy price is slightly lower
+            sell_price = latest_price["price"]
+            change = price_entries[0]["price"] - price_entries[1]["price"] if len(price_entries) > 1 else 0
+
+            price_entries.reverse()
+
+            history = [entry["price"] for entry in price_entries[:2]]
+            while len(history) < 7:
+                history.insert(0, 0)
+
+            
+            output_data["data"].append({
+                "symbol": valid_golds[symbol],
+                "buy": buy_price,
+                "sell": sell_price,
+                "change":  round(change, 1),
+                "history": history
+            })
+
+
+    
+    return output_data
+
+
+def get_prices_from_alanChand():
+    url_currency = "https://admin.alanchand.com/api/arz"
+    url_gold = "https://admin.alanchand.com/api/gold"
+
+    headers = CaseInsensitiveDict()
+    headers["Content-Type"] = "application/json"
+    data = '{"lang":"fa"}'
+
+    resp_currency = requests.post(url_currency, headers=headers, data=data).json()
+    resp_gold = requests.post(url_gold, headers=headers, data=data).json()
+
+    transformed_data = transform_currency_data(resp_currency, resp_gold)
+    return json.dumps(transformed_data, indent=2, ensure_ascii=False)
+# end of new functions to use alanChand as source
+
 def currency_price(request):
 
-    cache_timeout = 10
+    cache_timeout = 120
     shirini_status = False
 
     currency_price_cache = cache.get('currency_price')
@@ -199,7 +329,7 @@ def currency_price(request):
 
         # final_json = dist_calculate(current_prices, yesterday_prices)
 
-        sorted_final_json = json.loads(get_new_prices())
+        sorted_final_json = json.loads(get_prices_from_alanChand())
         sorted_final_json = OrderedDict(sorted(sorted_final_json.items()))
         sorted_final_json["shirini"] = shirini_status
 
