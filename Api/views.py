@@ -206,7 +206,7 @@ valid_golds = {
     '18AYAR': 'gol18',
     'USD_XAU': 'ounce',
     'SEKKEH': 'emami1',
-    'BHAHR': 'azadi1',
+    'BAHAR': 'azadi1',
     'NIM': 'azadi1_2',
     'ROB': 'azadi1_4',
     'SEK': 'azadi1g'
