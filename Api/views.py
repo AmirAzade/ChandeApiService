@@ -239,8 +239,8 @@ def transform_currency_data(input_json_currency, input_json_golds):
             
             output_data["data"].append({
                 "symbol": symbol,
-                "buy": buy_price,
-                "sell": sell_price,
+                "buy": round(buy_price),
+                "sell": round(sell_price),
                 "change": round(change, 1),
                 "history": history
             })
@@ -270,8 +270,8 @@ def transform_currency_data(input_json_currency, input_json_golds):
             
             output_data["data"].append({
                 "symbol": valid_golds[symbol],
-                "buy": buy_price,
-                "sell": sell_price,
+                "buy": round(buy_price),
+                "sell": round(sell_price),
                 "change":  round(change, 1),
                 "history": history
             })
